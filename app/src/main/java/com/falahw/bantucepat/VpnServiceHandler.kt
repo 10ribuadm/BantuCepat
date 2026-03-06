@@ -16,42 +16,57 @@ object VpnServiceHandler {
         }
 
         try {
-            // Kita gunakan Reflection agar Build di GitHub tidak GAGAL 
-            // meskipun nama fungsinya belum 100% pasti.
-            // Ini cara paling cerdas agar Anda tetap dapat APK-nya.
+            // Kita coba panggil library v2ray.
+            // Berdasarkan screenshot, libv2ray menggunakan gomobile.
+            // Kita harus panggil setup dan start jika ada.
             
             val libClass = Class.forName("libv2ray.Libv2ray")
             
-            // Mencoba beberapa variasi nama fungsi yang umum
+            // Cari semua method yang tersedia untuk debug
             val methods = libClass.declaredMethods
-            val startMethod = methods.find { it.name == "runV2Ray" || it.name == "runV2ray" || it.name == "main" }
+            methods.forEach { Log.d("VPN_BANTU", "Method tersedia: ${it.name}") }
+
+            // Coba panggil 'init' jika ada (beberapa lib butuh ini)
+            val initMethod = methods.find { it.name.lowercase().contains("init") }
+            initMethod?.let {
+                Log.d("VPN_BANTU", "Memanggil init...")
+                if (it.parameterTypes.isEmpty()) it.invoke(null)
+            }
+
+            // Cari method untuk start
+            val startMethod = methods.find { 
+                val name = it.name.lowercase()
+                name == "runv2ray" || name == "startv2ray" || name == "main"
+            }
             
             if (startMethod != null) {
-                if (startMethod.parameterTypes.size == 1) {
-                    startMethod.invoke(null, configJson)
-                } else if (startMethod.parameterTypes.size == 2) {
-                    startMethod.invoke(null, configJson, "") 
+                Log.d("VPN_BANTU", "Memanggil ${startMethod.name}")
+                when (startMethod.parameterTypes.size) {
+                    0 -> startMethod.invoke(null)
+                    1 -> startMethod.invoke(null, configJson)
+                    2 -> startMethod.invoke(null, configJson, "")
                 }
                 isRunning = true
-                Log.d("VPN_BANTU", "Berhasil memanggil fungsi: ${startMethod.name}")
             } else {
-                Log.e("VPN_BANTU", "Fungsi Start tidak ditemukan di libv2ray.aar")
+                Log.e("VPN_BANTU", "Method start TIDAK DITEMUKAN!")
             }
 
         } catch (e: Exception) {
-            Log.e("VPN_BANTU", "Error saat memanggil Core: ${e.message}")
+            Log.e("VPN_BANTU", "Error: ${e.message}")
         }
     }
 
     fun stopVpn() {
         try {
             val libClass = Class.forName("libv2ray.Libv2ray")
-            val stopMethod = libClass.declaredMethods.find { it.name == "stopV2Ray" || it.name == "stopV2ray" || it.name == "stop" }
+            val stopMethod = libClass.declaredMethods.find { 
+                val name = it.name.lowercase()
+                name == "stopv2ray" || name == "stop" 
+            }
             stopMethod?.invoke(null)
             isRunning = false
-            Log.d("VPN_BANTU", "VPN Dimatikan")
         } catch (e: Exception) {
-            Log.e("VPN_BANTU", "Gagal stop VPN: ${e.message}")
+            Log.e("VPN_BANTU", "Gagal stop: ${e.message}")
         }
     }
 }
