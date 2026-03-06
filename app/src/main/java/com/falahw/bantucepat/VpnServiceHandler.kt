@@ -1,9 +1,7 @@
 package com.falahw.bantucepat
 
 import android.content.Context
-import android.content.Intent
 import android.net.VpnService
-import dev.v2ray.core.V2rayCore
 
 object VpnServiceHandler {
     private var isRunning = false
@@ -17,15 +15,13 @@ object VpnServiceHandler {
         // Cek izin VPN
         val intent = VpnService.prepare(context)
         if (intent != null) {
-            // Jika butuh izin, ini harus dipanggil dari Activity (startActivityForResult)
+            // Jika butuh izin, ini harus dipanggil dari Activity
             return
         }
 
-        // Jalankan Core V2Ray (Asumsi library libv2ray.aar menyediakan method ini)
-        // Catatan: Method ini tergantung pada isi libv2ray.aar yang Anda masukkan
         try {
-            // Contoh pemanggilan start (sesuaikan dengan isi .aar Anda)
-            // V2rayCore.start(context, configJson)
+            // TODO: Sesuaikan nama class V2RayCore dengan isi libv2ray.aar Anda
+            // Contoh: libv2ray.Libv2ray.startCore(configJson)
             isRunning = true
         } catch (e: Exception) {
             e.printStackTrace()
@@ -34,7 +30,7 @@ object VpnServiceHandler {
 
     fun stopVpn() {
         try {
-            // V2rayCore.stop()
+            // TODO: Sesuaikan dengan isi libv2ray.aar Anda
             isRunning = false
         } catch (e: Exception) {
             e.printStackTrace()
