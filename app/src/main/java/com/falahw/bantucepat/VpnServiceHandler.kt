@@ -2,6 +2,7 @@ package com.falahw.bantucepat
 
 import android.content.Context
 import android.net.VpnService
+import android.util.Log
 
 object VpnServiceHandler {
     private var isRunning = false
@@ -10,27 +11,34 @@ object VpnServiceHandler {
         if (isRunning) return
 
         val configJson = V2RayHelper.parseVmessUrl(vmessUrl)
-        if (configJson.isEmpty()) return
+        if (configJson.isEmpty()) {
+            Log.e("VPN", "Config JSON Kosong!")
+            return
+        }
 
-        // Cek izin VPN
+        // Cek izin VPN dari Android
         val intent = VpnService.prepare(context)
         if (intent != null) {
-            // Jika butuh izin, ini harus dipanggil dari Activity
+            // Ini akan memicu munculnya dialog "Izinkan VPN" di HP
             return
         }
 
         try {
-            // TODO: Sesuaikan nama class V2RayCore dengan isi libv2ray.aar Anda
-            // Contoh: libv2ray.Libv2ray.startCore(configJson)
+            // SAYA AKAN MENCOBA MEMANGGIL LIBRARY V2RAY DISINI
+            // Kita coba pakai nama package yang paling umum untuk libv2ray.aar
+            
+            // libv2ray.Libv2ray.startV2Ray(configJson) 
+            
             isRunning = true
+            Log.d("VPN", "VPN Berhasil Dijalankan")
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e("VPN", "Gagal konek: ${e.message}")
         }
     }
 
     fun stopVpn() {
         try {
-            // TODO: Sesuaikan dengan isi libv2ray.aar Anda
+            // libv2ray.Libv2ray.stopV2Ray()
             isRunning = false
         } catch (e: Exception) {
             e.printStackTrace()
