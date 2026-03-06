@@ -1,11 +1,16 @@
 package com.falahw.bantucepat
 
+import android.app.Activity
 import android.content.Intent
 import android.net.Uri
+import android.net.VpnService
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -97,6 +102,19 @@ fun LicenseScreen(viewModel: MainViewModel, onLicenseSaved: () -> Unit) {
 fun MainScreen(viewModel: MainViewModel) {
     val isActivated by viewModel.isActivated.collectAsState()
     val context = LocalContext.current
+    var pendingVmessUrl by remember { mutableStateOf("") }
+
+    // Launcher untuk menangkap dialog izin VPN Android
+    val vpnLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            // Jika user klik "OK" di dialog VPN
+            VpnServiceHandler.startVpn(context, pendingVmessUrl)
+        } else {
+            Toast.makeText(context, "Izin VPN ditolak!", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -119,8 +137,16 @@ fun MainScreen(viewModel: MainViewModel) {
                         val intent = Intent(Intent.ACTION_VIEW, Uri.parse(whatsappUrl))
                         context.startActivity(intent)
                     }, onConnect = {
-                        // Memanggil fungsi Konek VPN
-                        VpnServiceHandler.startVpn(context, server.vmessUrl)
+                        // Simpan URL sementara
+                        pendingVmessUrl = server.vmessUrl
+                        // Cek apakah butuh izin VPN
+                        val intent = VpnService.prepare(context)
+                        if (intent != null) {
+                            vpnLauncher.launch(intent)
+                        } else {
+                            // Sudah punya izin, langsung gas
+                            VpnServiceHandler.startVpn(context, pendingVmessUrl)
+                        }
                     })
                 }
             }

@@ -1,8 +1,8 @@
 package com.falahw.bantucepat
 
 import android.content.Context
-import android.net.VpnService
 import android.util.Log
+import libv2ray.Libv2ray
 
 object VpnServiceHandler {
     private var isRunning = false
@@ -12,34 +12,29 @@ object VpnServiceHandler {
 
         val configJson = V2RayHelper.parseVmessUrl(vmessUrl)
         if (configJson.isEmpty()) {
-            Log.e("VPN", "Config JSON Kosong!")
-            return
-        }
-
-        // Cek izin VPN dari Android
-        val intent = VpnService.prepare(context)
-        if (intent != null) {
-            // Ini akan memicu munculnya dialog "Izinkan VPN" di HP
+            Log.e("VPN_BANTU", "Config JSON Kosong!")
             return
         }
 
         try {
-            // SAYA AKAN MENCOBA MEMANGGIL LIBRARY V2RAY DISINI
-            // Kita coba pakai nama package yang paling umum untuk libv2ray.aar
+            // Berdasarkan screenshot libgojni.so, ini kemungkinan besar Gomobile
+            // Package biasanya 'libv2ray' dan class 'Libv2ray'
             
-            // libv2ray.Libv2ray.startV2Ray(configJson) 
+            // Mencoba memanggil fungsi start (biasanya runV2ray atau sejenisnya)
+            Libv2ray.runV2ray(configJson)
             
             isRunning = true
-            Log.d("VPN", "VPN Berhasil Dijalankan")
+            Log.d("VPN_BANTU", "VPN Dijalankan menggunakan Libv2ray")
         } catch (e: Exception) {
-            Log.e("VPN", "Gagal konek: ${e.message}")
+            Log.e("VPN_BANTU", "Gagal Memanggil Core: ${e.message}")
         }
     }
 
     fun stopVpn() {
         try {
-            // libv2ray.Libv2ray.stopV2Ray()
+            Libv2ray.stopV2ray()
             isRunning = false
+            Log.d("VPN_BANTU", "VPN Dimatikan")
         } catch (e: Exception) {
             e.printStackTrace()
         }
