@@ -3,12 +3,12 @@ name: Android Build APK
 on:
   push:
     branches: [ "master", "main" ]
-  pull_request:
-    branches: [ "master", "main" ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
     - uses: actions/checkout@v4
@@ -32,10 +32,13 @@ jobs:
 
     - name: Rename APK
       run: |
-        mv app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/BantuCepat_${{ steps.date.outputs.datetime }}.apk
+        mkdir -p release_apk
+        cp app/build/outputs/apk/debug/app-debug.apk release_apk/BantuCepat_${{ steps.date.outputs.datetime }}.apk
 
-    - name: Upload APK
-      uses: actions/upload-artifact@v4
-      with:
-        name: BantuCepat_Build_${{ steps.date.outputs.datetime }}
-        path: app/build/outputs/apk/debug/BantuCepat_${{ steps.date.outputs.datetime }}.apk
+    - name: Commit and Push APK to Repo
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git add release_apk/
+        git commit -m "Upload APK: BantuCepat_${{ steps.date.outputs.datetime }}"
+        git push
